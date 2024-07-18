@@ -8,9 +8,18 @@ const setCesiumDefault = async () => {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4MGQ0YTBmOS0zNTY2LTQ5ZmUtODY2My1jMTc1OTIzMjU0MDAiLCJpZCI6MTk1MDUwLCJpYXQiOjE3MDc2NTA1Mjh9.AG76qYPGsQvT0kbsRba0vrA8Hm3KICp_3VYk0kq3msQ'
   Cesium.Ion.defaultAccessToken = defaultToken
 
+  const esri = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+    'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
+  )
   /** 这里是配置项 */
   const viewer = new Cesium.Viewer('cesiumContainer', {
     baseLayerPicker: false,
+    terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
+      // 可以增加法线，用于提高光照效果
+      requestVertexNormals: true,
+      // 可以增加水面特效
+      requestWaterMask: true
+    }),
     // 动画播放控件
     animation: false,
     // 时间轴控件
@@ -24,15 +33,12 @@ const setCesiumDefault = async () => {
     // VR按钮
     vrButton: false
   })
-  // 加载带标签的必应鸟瞰图
-  const layer = viewer.imageryLayers.addImageryProvider(
-    await Cesium.IonImageryProvider.fromAssetId(3)
-  )
+  // 加载ArcGis地图
+  viewer.imageryLayers.addImageryProvider(esri)
 
   // 夜晚的地球
-  // const layer = viewer.imageryLayers.addImageryProvider(
-  //   await Cesium.IonImageryProvider.fromAssetId(3812)
-  // )
+  // addImageryProvider方法用于添加一个新的图层
+  // viewer.imageryLayers.addImageryProvider(await Cesium.IonImageryProvider.fromAssetId(3812))
 
   /** 相机 */
   // const position = Cesium.Cartesian3.fromDegrees(116.39, 39.9, 400)
@@ -82,6 +88,33 @@ const setCesiumDefault = async () => {
 
   /** wgs84转为笛卡尔空间直角坐标系*/
   // const cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, height)
+
+  /** 添加建筑物 */
+  const tileset = viewer.scene.primitives.add(await Cesium.Cesium3DTileset.fromIonAssetId(75343))
+  /** 添加相机信息 */
+  const position = Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100)
+  viewer.camera.setView({
+    destination: position,
+    orientation: {
+      heading: 0,
+      pitch: 0,
+      roll: 0.0
+    }
+  })
+  tileset.style = new Cesium.Cesium3DTileStyle({
+    color: {
+      conditions: [
+        ['${Height} >= 300', 'rgba(45,0,75,0.5)'],
+        ['${Height} >= 100', 'rgb(170,162,204)'],
+        ['${Height} >= 50', 'rgb(102,71,151)'],
+        ['true', 'rgb(127,59,8)']
+      ]
+    },
+    show: '${Height} > 0',
+    meta: {
+      description: '"Building id ${id} has height ${Height}."'
+    }
+  })
 }
 
 onMounted(() => {
