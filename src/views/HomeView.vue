@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import * as Cesium from 'cesium'
 import { prettyLog } from '@/utils/prettylog'
+import { keyboardMapRoamingInit } from '@/utils/keyboardMapRoaming'
 
 const setCesiumDefault = async () => {
   const defaultToken =
@@ -35,6 +36,12 @@ const setCesiumDefault = async () => {
   })
   // 加载ArcGis地图
   viewer.imageryLayers.addImageryProvider(esri)
+  // 去除logo
+  // @ts-ignore
+  viewer.cesiumWidget.creditContainer.style.display = 'none'
+
+  // 键盘控制漫游
+  keyboardMapRoamingInit(viewer)
 
   // 夜晚的地球
   // addImageryProvider方法用于添加一个新的图层
