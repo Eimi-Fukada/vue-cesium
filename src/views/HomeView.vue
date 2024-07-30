@@ -4,6 +4,7 @@ import * as Cesium from 'cesium'
 import { keyboardMapRoamingInit } from '@/utils/keyboardMapRoaming'
 import { saveToImage } from '@/utils/saveToImage'
 import { createSnowEffect } from '@/utils/snowEffect'
+import { createRainEffect } from '@/utils/rainEffect'
 
 const cesiumViewer = ref<Cesium.Viewer | null>(null)
 
@@ -52,6 +53,12 @@ const setCesiumDefault = async () => {
   // const snowEffect = createSnowEffect(cesiumViewer.value, {
   //   snowSize: 0.02,
   //   snowSpeed: 60
+  // })
+  // 下雨事件
+  // const rainEffect = createRainEffect(cesiumViewer.value, {
+  //   tiltAngle: -0.2, //倾斜角度
+  //   rainSize: 1.0, // 雨大小
+  //   rainSpeed: 120.0 // 雨速
   // })
 
   // 键盘控制漫游
