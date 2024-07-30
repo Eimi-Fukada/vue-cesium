@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import * as Cesium from 'cesium'
 import { keyboardMapRoamingInit } from '@/utils/keyboardMapRoaming'
 import { saveToImage } from '@/utils/saveToImage'
+import { createSnowEffect } from '@/utils/snowEffect'
 
 const cesiumViewer = ref<Cesium.Viewer | null>(null)
 
@@ -18,12 +19,12 @@ const setCesiumDefault = async () => {
   /** 这里是配置项 */
   cesiumViewer.value = new Cesium.Viewer('cesiumContainer', {
     baseLayerPicker: false,
-    terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
-      // 可以增加法线，用于提高光照效果
-      requestVertexNormals: true,
-      // 可以增加水面特效
-      requestWaterMask: true
-    }),
+    // terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
+    //   // 可以增加法线，用于提高光照效果
+    //   requestVertexNormals: true,
+    //   // 可以增加水面特效
+    //   requestWaterMask: true
+    // }),
     // 动画播放控件
     animation: false,
     // 时间轴控件
@@ -42,6 +43,16 @@ const setCesiumDefault = async () => {
   // 去除logo
   // @ts-ignore
   cesiumViewer.value.cesiumWidget.creditContainer.style.display = 'none'
+  // 显示帧率
+  cesiumViewer.value.scene.debugShowFramesPerSecond = true
+  // 自定义地球球体背景效果
+  const provider = await Cesium.SingleTileImageryProvider.fromUrl('/1.webp')
+  cesiumViewer.value.imageryLayers.addImageryProvider(provider)
+  // 下雪事件
+  // const snowEffect = createSnowEffect(cesiumViewer.value, {
+  //   snowSize: 0.02,
+  //   snowSpeed: 60
+  // })
 
   // 键盘控制漫游
   keyboardMapRoamingInit(cesiumViewer.value)
