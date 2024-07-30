@@ -5,6 +5,7 @@ import { keyboardMapRoamingInit } from '@/utils/keyboardMapRoaming'
 import { saveToImage } from '@/utils/saveToImage'
 import { createSnowEffect } from '@/utils/snowEffect'
 import { createRainEffect } from '@/utils/rainEffect'
+import { updateLighting } from '@/utils/updateLighting'
 
 const cesiumViewer = ref<Cesium.Viewer | null>(null)
 
@@ -17,6 +18,7 @@ const setCesiumDefault = async () => {
   const esri = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
     'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
   )
+
   /** 这里是配置项 */
   cesiumViewer.value = new Cesium.Viewer('cesiumContainer', {
     baseLayerPicker: false,
@@ -39,21 +41,30 @@ const setCesiumDefault = async () => {
     // VR按钮
     vrButton: false
   })
+
   // 加载ArcGis地图
   cesiumViewer.value.imageryLayers.addImageryProvider(esri)
+
   // 去除logo
   // @ts-ignore
   cesiumViewer.value.cesiumWidget.creditContainer.style.display = 'none'
+
   // 显示帧率
   cesiumViewer.value.scene.debugShowFramesPerSecond = true
+
   // 自定义地球球体背景效果
-  const provider = await Cesium.SingleTileImageryProvider.fromUrl('/1.webp')
-  cesiumViewer.value.imageryLayers.addImageryProvider(provider)
+  // const provider = await Cesium.SingleTileImageryProvider.fromUrl('/1.webp')
+  // cesiumViewer.value.imageryLayers.addImageryProvider(provider)
+
+  // 昼夜交替效果
+  // updateLighting(cesiumViewer.value)
+
   // 下雪事件
   // const snowEffect = createSnowEffect(cesiumViewer.value, {
   //   snowSize: 0.02,
   //   snowSpeed: 60
   // })
+
   // 下雨事件
   // const rainEffect = createRainEffect(cesiumViewer.value, {
   //   tiltAngle: -0.2, //倾斜角度
@@ -118,33 +129,34 @@ const setCesiumDefault = async () => {
   // const cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, height)
 
   /** 添加建筑物 */
-  const tileset = cesiumViewer.value.scene.primitives.add(
-    await Cesium.Cesium3DTileset.fromIonAssetId(75343)
-  )
+  // const tileset = cesiumViewer.value.scene.primitives.add(
+  //   await Cesium.Cesium3DTileset.fromIonAssetId(75343)
+  // )
+
   /** 添加相机信息 */
-  const position = Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100)
-  cesiumViewer.value.camera.setView({
-    destination: position,
-    orientation: {
-      heading: 0,
-      pitch: 0,
-      roll: 0.0
-    }
-  })
-  tileset.style = new Cesium.Cesium3DTileStyle({
-    color: {
-      conditions: [
-        ['${Height} >= 300', 'rgba(45,0,75,0.5)'],
-        ['${Height} >= 100', 'rgb(170,162,204)'],
-        ['${Height} >= 50', 'rgb(102,71,151)'],
-        ['true', 'rgb(127,59,8)']
-      ]
-    },
-    show: '${Height} > 0',
-    meta: {
-      description: '"Building id ${id} has height ${Height}."'
-    }
-  })
+  // const position = Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100)
+  // cesiumViewer.value.camera.setView({
+  //   destination: position,
+  //   orientation: {
+  //     heading: 0,
+  //     pitch: 0,
+  //     roll: 0.0
+  //   }
+  // })
+  // tileset.style = new Cesium.Cesium3DTileStyle({
+  //   color: {
+  //     conditions: [
+  //       ['${Height} >= 300', 'rgba(45,0,75,0.5)'],
+  //       ['${Height} >= 100', 'rgb(170,162,204)'],
+  //       ['${Height} >= 50', 'rgb(102,71,151)'],
+  //       ['true', 'rgb(127,59,8)']
+  //     ]
+  //   },
+  //   show: '${Height} > 0',
+  //   meta: {
+  //     description: '"Building id ${id} has height ${Height}."'
+  //   }
+  // })
 }
 
 /** 导出场景图片 */
