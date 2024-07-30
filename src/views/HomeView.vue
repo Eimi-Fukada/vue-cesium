@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import * as Cesium from 'cesium'
-import { prettyLog } from '@/utils/prettylog'
 import { keyboardMapRoamingInit } from '@/utils/keyboardMapRoaming'
+import { saveToImage } from '@/utils/saveToImage'
 
+const cesiumViewer = ref<Cesium.Viewer | null>(null)
+
+/** 初始化Cesium */
 const setCesiumDefault = async () => {
   const defaultToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4MGQ0YTBmOS0zNTY2LTQ5ZmUtODY2My1jMTc1OTIzMjU0MDAiLCJpZCI6MTk1MDUwLCJpYXQiOjE3MDc2NTA1Mjh9.AG76qYPGsQvT0kbsRba0vrA8Hm3KICp_3VYk0kq3msQ'
@@ -13,7 +16,7 @@ const setCesiumDefault = async () => {
     'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer'
   )
   /** 这里是配置项 */
-  const viewer = new Cesium.Viewer('cesiumContainer', {
+  cesiumViewer.value = new Cesium.Viewer('cesiumContainer', {
     baseLayerPicker: false,
     terrainProvider: await Cesium.CesiumTerrainProvider.fromIonAssetId(1, {
       // 可以增加法线，用于提高光照效果
@@ -35,21 +38,21 @@ const setCesiumDefault = async () => {
     vrButton: false
   })
   // 加载ArcGis地图
-  viewer.imageryLayers.addImageryProvider(esri)
+  cesiumViewer.value.imageryLayers.addImageryProvider(esri)
   // 去除logo
   // @ts-ignore
-  viewer.cesiumWidget.creditContainer.style.display = 'none'
+  cesiumViewer.value.cesiumWidget.creditContainer.style.display = 'none'
 
   // 键盘控制漫游
-  keyboardMapRoamingInit(viewer)
+  keyboardMapRoamingInit(cesiumViewer.value)
 
   // 夜晚的地球
   // addImageryProvider方法用于添加一个新的图层
-  // viewer.imageryLayers.addImageryProvider(await Cesium.IonImageryProvider.fromAssetId(3812))
+  // cesiumViewer.value.imageryLayers.addImageryProvider(await Cesium.IonImageryProvider.fromAssetId(3812))
 
   /** 相机 */
   // const position = Cesium.Cartesian3.fromDegrees(116.39, 39.9, 400)
-  // viewer.camera.setView({
+  // cesiumViewer.value.camera.setView({
   //   // 设定相机的目的地
   //   destination: position,
   //   // 设定相机视口的方向
@@ -64,21 +67,21 @@ const setCesiumDefault = async () => {
   // })
 
   /** 通过entities加载一个绿色的实体 */
-  // const entity = viewer.entities.add({
+  // const entity = cesiumViewer.value.entities.add({
   //   position: Cesium.Cartesian3.fromDegrees(116.39, 39.9, 400),
   //   point: {
   //     pixelSize: 100,
   //     color: new Cesium.Color(0, 1, 0, 1)
   //   }
   // })
-  // viewer.trackedEntity = entity
+  // cesiumViewer.value.trackedEntity = entity
 
   /** 通过entities加载一个飞机模型 */
   // const orientation = Cesium.Transforms.headingPitchRollQuaternion(
   //   position,
   //   new Cesium.HeadingPitchRoll(-90, 0, 0)
   // )
-  // const entity = viewer.entities.add({
+  // const entity = cesiumViewer.value.entities.add({
   //   position: position,
   //   orientation: orientation,
   //   model: {
@@ -88,19 +91,21 @@ const setCesiumDefault = async () => {
   //     show: true
   //   }
   // })
-  // viewer.trackedEntity = entity
+  // cesiumViewer.value.trackedEntity = entity
 
   /** 通过GeoJsonDataSource加载矢量数据 */
-  // viewer.dataSources.add(Cesium.GeoJsonDataSource.load('/ne_10m_us_states.topojson'))
+  // cesiumViewer.value.dataSources.add(Cesium.GeoJsonDataSource.load('/ne_10m_us_states.topojson'))
 
   /** wgs84转为笛卡尔空间直角坐标系*/
   // const cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, height)
 
   /** 添加建筑物 */
-  const tileset = viewer.scene.primitives.add(await Cesium.Cesium3DTileset.fromIonAssetId(75343))
+  const tileset = cesiumViewer.value.scene.primitives.add(
+    await Cesium.Cesium3DTileset.fromIonAssetId(75343)
+  )
   /** 添加相机信息 */
   const position = Cesium.Cartesian3.fromDegrees(-74.006, 40.7128, 100)
-  viewer.camera.setView({
+  cesiumViewer.value.camera.setView({
     destination: position,
     orientation: {
       heading: 0,
@@ -124,18 +129,37 @@ const setCesiumDefault = async () => {
   })
 }
 
+/** 导出场景图片 */
+const handleExport = () => {
+  if (cesiumViewer.value) {
+    saveToImage(cesiumViewer.value)
+  }
+}
+
 onMounted(() => {
   setCesiumDefault()
 })
 </script>
 
 <template>
-  <div id="cesiumContainer" class="cesium-container"></div>
+  <div style="position: relative">
+    <div id="cesiumContainer" class="cesium-container"></div>
+    <div class="export" @click="handleExport">export</div>
+  </div>
 </template>
 
 <style scoped>
 #cesiumContainer {
   width: 100vw;
   height: 100vh;
+}
+.export {
+  position: absolute;
+  top: 100px;
+  right: 0;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 8px 12px;
+  cursor: pointer;
 }
 </style>
